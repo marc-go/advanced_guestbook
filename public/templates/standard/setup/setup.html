@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+    {
+      "imports": {
+        "@material/web/": "https://esm.run/@material/web/"
+      }
+    }
+  </script>
+  <script type="module">
+    import '@material/web/all.js';
+    import {styles as typescaleStyles} from '@material/web/typography/md-typescale-styles.js';
+
+    document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+  </script>
+
+  <title>Setup</title>
+
+  <style>
+    :root {
+        --md-sys-color-primary: rgb(58, 58, 255);
+    }
+
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
+
+    p {
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+    }
+  </style>
+</head>
+<body>
+    <div class="content">
+        <h1 class="md-typescale-display-medium">Hello!</h1>
+        <p>Welcome to your Guestbook! Enter here your prefered username and password.</p>
+        <md-filled-text-field label="Username" type="text" id="setup-username"></md-filled-text-field><br><br>
+        <md-filled-text-field label="Password" type="password" id="setup-password"></md-filled-text-field><br><br>
+        <md-filled-text-field label="Repeat Password" type="password" id="setup-password-repeat"></md-filled-text-field><br><br>
+        <md-filled-button id="submit-button">Save</md-filled-button>
+    </div>
+    <md-dialog id="http-dialog">
+        <div slot="headline">
+            Warning
+        </div>
+        <form slot="content" method="dialog">
+            Your browser is using http instead of https. That means your connection is not encrypted and everyone in your network can read your credentials.
+        </form>
+        <div slot="actions">
+            <md-text-button id="http-dialog-close-button">I know what i'm doing!</md-text-button>
+        </div>
+    </md-dialog>
+    <md-dialog id="error-dialog">
+        <div slot="headline">
+            Error
+        </div>
+        <form slot="content" method="dialog" id="error-dialog-text">
+            
+        </form>
+        <div slot="actions">
+            <md-filled-button id="close-button">Close</md-filled-button>
+        </div>
+    </md-dialog>
+    <md-dialog id="success-dialog">
+        <div slot="headline">
+            Success!
+        </div>
+        <form slot="content" method="dialog" id="error-dialog-text">
+            Your Guestbook is finaly configurated! You can find the admin Panel on <span id="success-admin-url"></span>.
+        </form>
+        <div slot="actions">
+            <md-filled-button id="success-dialog-home">Open Guestbook</md-filled-button>
+            <md-filled-button id="success-dialog-admin">Open Admin Panel</md-filled-button>
+        </div>
+    </md-dialog>
+    <script>
+        if (window.location.protocol == "http:") {
+            document.getElementById("http-dialog").setAttribute("open", "");
+            document.getElementById("http-dialog-close-button").addEventListener("click", function() {
+                document.getElementById("http-dialog").removeAttribute("open");
+            });
+        }
+
+        document.getElementById("submit-button").addEventListener("click", function() {
+            checkSetup();
+        });
+
+        document.getElementById("close-button").addEventListener("click", function() {
+            document.getElementById("error-dialog").removeAttribute("open");
+        });
+
+        document.getElementById("success-dialog-home").addEventListener("click", function() {
+            window.location.reload();
+        });
+
+        document.getElementById("success-dialog-admin").addEventListener("click", function() {
+            window.location.href = "/admin";
+        });
+
+        function checkSetup() {
+            const username = document.getElementById("setup-username").value;
+            const password = document.getElementById("setup-password").value;
+            const password_repeat = document.getElementById("setup-password-repeat").value;
+
+            // Check if Passwords match
+            if (password !== password_repeat) {
+                console.error("Passwords does not match");
+
+                document.getElementById("error-dialog-text").innerHTML = "Passwords does not match";
+                document.getElementById("error-dialog").setAttribute("open", "");
+                return;
+            }
+
+            // Send data
+            fetch("/api/setup/save.php", {
+                method: "POST",
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    password_repeat: password_repeat
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == 200) {
+                    document.getElementById("success-admin-url").innerHTML = window.location.origin + "/admin";
+                    document.getElementById("success-dialog").setAttribute("open", "");
+                }else{
+                    console.error("Server returned following message: " + data.error);
+
+                    document.getElementById("error-dialog-text").innerHTML = data.error_text;
+                    document.getElementById("error-dialog").setAttribute("open", "");
+                }
+            })
+            .catch(error => {
+                console.error("Server returned following message: " + error);
+
+                document.getElementById("error-dialog-text").innerHTML = error;
+                document.getElementById("error-dialog").setAttribute("open", "");
+            })
+        }
+    </script>
+</body>
+</html>

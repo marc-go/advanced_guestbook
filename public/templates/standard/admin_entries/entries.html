@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>%appname% - Admin Panel - All Entries</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script type="importmap">
+        {
+            "imports": {
+                "@material/web/": "https://esm.run/@material/web/"
+            }
+        }
+    </script>
+    <script type="module">
+        import '@material/web/all.js';
+        import { styles as typescaleStyles } from '@material/web/typography/md-typescale-styles.js';
+
+        document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+    </script>
+    <style>
+        :root {
+            --md-sys-color-primary: rgb(58, 58, 255);
+            --active-menu-point-color: rgb(116, 148, 250);
+            --md-sys-color-surface-container: rgb(223, 228, 255);
+        }
+
+        body {
+            margin: 0;
+        }
+
+        .layout {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            flex: 0 0 280px;
+            width: 280px;
+            overflow: hidden;
+            background: var(--md-sys-color-surface-container);
+            border-right: 1px solid var(--md-sys-color-outline-variant);
+            transition: flex-basis .2s ease, width .2s ease;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            white-space: nowrap;
+        }
+
+        .sidebar md-list {
+            background: transparent;
+        }
+
+        md-list-item.active {
+            background-color: var(--active-menu-point-color);
+            border-radius: 28px;
+            margin-bottom: 10px;
+        }
+
+        md-list-item {
+            border-radius: 28px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar.collapsed {
+            flex-basis: 58px;
+            width: 58x;
+        }
+
+        .sidebar.collapsed .title,
+        .sidebar.collapsed .label {
+            display: none;
+        }
+
+        .content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 720px) {
+            body {
+                overflow-x: hidden;
+            }
+        }
+
+        #entry_delete_button {
+            --md-sys-color-primary: #e30;
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <md-icon-button id="toggle" aria-label="Menü ein-/ausklappen">
+                    <md-icon>menu</md-icon>
+                </md-icon-button>
+                <span class="md-typescale-body-large title">%appname%</span>
+            </div>
+
+            <md-list>
+                <md-list-item type="link" href="/admin/overview/">
+                    <md-icon slot="start">dashboard</md-icon>
+                    <span class="label">Overview</span>
+                </md-list-item>
+                <md-list-item type="link" href="/admin/entries/" class="active">
+                    <md-icon slot="start">book</md-icon>
+                    <span class="label">Entries</span>
+                </md-list-item>
+                <md-list-item type="link" href="/admin/settings/">
+                    <md-icon slot="start">settings</md-icon>
+                    <span class="label">Settings</span>
+                </md-list-item>
+            </md-list>
+        </aside>
+
+        <main class="content">
+            <h1 class="md-typescale-display-large">%appname%</h1>
+            <h3 class="md-typescale-display-medium">All Entries</h3>
+            
+            <md-tabs id="tabs">
+                <md-primary-tab id="entry_approved_tab">
+                    <md-icon slot="icon">check</md-icon>
+                    Approved
+                </md-primary-tab>
+                <md-primary-tab id="entry_approved_tab">
+                    <md-icon slot="icon">cached</md-icon>
+                    Pending
+                </md-primary-tab>
+                <md-primary-tab id="entry_approved_tab">
+                    <md-icon slot="icon">block</md-icon>
+                    Blocked
+                </md-primary-tab>
+            </md-tabs>
+
+            <md-list id="entry_list">
+                <div id="approved_entry_list" style="display: block;">
+                    %approved_entries%
+                </div>
+                <div id="pending_entry_list" style="display: none;">
+                    %pending_entries%
+                </div>
+                <div id="blocked_entry_list" style="display: none;">
+                    %blocked_entries%
+                </div>
+            </md-list>
+        </main>
+    </div>
+
+
+    <md-dialog id="error_dialog">
+        <div slot="headline">Error</div>
+        <form slot="content" id="error_text" method="dialog">
+
+        </form>
+        <div slot="actions">
+            <md-text-button form="error_text">Close</md-text-button>
+        </div>
+    </md-dialog>
+
+    <md-dialog id="delete_dialog">
+        <div slot="headline">Are you sure?</div>
+        <form slot="content" id="delete_dialog_form" method="dialog">
+            You can not undo this action.
+        </form>
+        <div slot="actions">
+            <md-text-button form="delete_dialog_form">Close</md-text-button>
+            <md-filled-button id="entry_delete_button">Delete</md-filled-button>
+        </div>
+    </md-dialog>
+
+    <md-dialog id="edit_dialog">
+        <div slot="headline">Edit Entry</div>
+        <form slot="content" id="edit_dialog_form" method="dialog">
+            <span style="display: none;" id="edit_dialog_id"></span>
+            <md-filled-text-field label="Name" id="edit_dialog_name"></md-filled-text-field><br><br>
+            <md-filled-text-field type="textarea" label="Text" rows="3" id="edit_dialog_text"></md-filled-text-field>
+        </form>
+        <div slot="actions">
+            <md-text-button form="edit_dialog_form">Close</md-text-button>
+            <md-filled-button id="edit_dialog_button" onclick="saveEdit()">Save</md-filled-button>
+        </div>
+    </md-dialog>
+
+
+    <script type="module">
+        const sidebar = document.getElementById('sidebar');
+        const items = sidebar.querySelectorAll('md-list-item');
+
+        const mq = window.matchMedia('(max-width: 720px)');
+
+        const applyBreakpoint = () => {
+            sidebar.classList.toggle('collapsed', mq.matches);
+        };
+
+        applyBreakpoint();
+        mq.addEventListener('change', applyBreakpoint);
+
+        document.getElementById('toggle').addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        items.forEach(item => {
+            item.addEventListener('click', () => {
+                items.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+    </script>
+    
+    <script>
+        const tabs = document.getElementById("tabs");
+        tabs.addEventListener("change", (event) => {
+            if (event.target.activeTabIndex == 0) {
+                document.getElementById("approved_entry_list").style.display = "block";
+                document.getElementById("pending_entry_list").style.display = "none";
+                document.getElementById("blocked_entry_list").style.display = "none";
+            }
+
+            if (event.target.activeTabIndex == 1) {
+                document.getElementById("approved_entry_list").style.display = "none";
+                document.getElementById("pending_entry_list").style.display = "block";
+                document.getElementById("blocked_entry_list").style.display = "none";
+            }
+
+            if (event.target.activeTabIndex == 2) {
+                document.getElementById("approved_entry_list").style.display = "none";
+                document.getElementById("pending_entry_list").style.display = "none";
+                document.getElementById("blocked_entry_list").style.display = "block";
+            }
+        });
+
+        var approved_entry_list = document.getElementById("approved_entry_list");
+        var pending_entry_list = document.getElementById("pending_entry_list");
+        var blocked_entry_list = document.getElementById("blocked_entry_list");
+
+        var entry_count;
+
+        if (approved_entry_list.querySelectorAll("md-list-item").length == 0) {
+            const empty_message_item1 = document.createElement("md-list-item");
+
+            const content1 = document.createElement("div");
+            content1.slot = "supporting-text";
+            content1.textContent = "No entries";
+
+            empty_message_item1.append(content1);
+            empty_message_item1.setAttribute("id", "approved_entry_list_empty");
+            approved_entry_list.appendChild(empty_message_item1);
+        }
+
+        if (pending_entry_list.querySelectorAll("md-list-item").length == 0) {
+            const empty_message_item2 = document.createElement("md-list-item");
+
+            const content2 = document.createElement("div");
+            content2.slot = "supporting-text";
+            content2.textContent = "No entries";
+
+            empty_message_item2.append(content2);
+            empty_message_item2.setAttribute("id", "pending_entry_list_empty");
+            pending_entry_list.appendChild(empty_message_item2);
+        }
+
+        if (blocked_entry_list.querySelectorAll("md-list-item").length == 0) {
+            const empty_message_item3 = document.createElement("md-list-item");
+
+            const content3 = document.createElement("div");
+            content3.slot = "supporting-text";
+            content3.textContent = "No entries";
+
+            empty_message_item3.append(content3);
+            empty_message_item3.setAttribute("id", "blocked_entry_list_empty");
+            blocked_entry_list.appendChild(empty_message_item3);
+        }
+
+        function approveEntry(id) {
+            fetch("/api/entry/approve.php", {
+                method: "POST",
+                body: JSON.stringify({
+                    id: id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == 200) {
+                    move_item(id, "approved_entry_list");
+                }else{
+                    if (data.status == 401) {
+                        document.getElementById("error_text").innerHTML = "You are not authenticated. Please reload the page and log in again."
+                    }else{
+                        document.getElementById("error_text").innerHTML = "API returned following error: " + data.error_text
+                    }
+
+                    document.getElementById("error_dialog").setAttribute("open", "");
+                }
+            })
+            .catch(error => {
+                document.getElementById("error_text").innerHTML = "API Request failed: " + error;
+                document.getElementById("error_dialog").setAttribute("open", "");
+
+                console.log(error);
+            })
+        }
+
+        function blockEntry(id) {
+            fetch("/api/entry/block.php", {
+                method: "POST",
+                body: JSON.stringify({
+                    id: id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == 200) {
+                    move_item(id, "blocked_entry_list");
+                }else{
+                    if (data.status == 401) {
+                        document.getElementById("error_text").innerHTML = "You are not authenticated. Please reload the page and log in again."
+                    }else{
+                        document.getElementById("error_text").innerHTML = "API returned following error: " + data.error_text
+                    }
+
+                    document.getElementById("error_dialog").setAttribute("open", "");
+                }
+            })
+            .catch(error => {
+                document.getElementById("error_text").innerHTML = "API Request failed: " + error;
+                document.getElementById("error_dialog").setAttribute("open", "");
+
+                console.log(error);
+            })
+        }
+
+        function deleteEntry(id) {
+            const dialog = document.getElementById("delete_dialog");
+            document.getElementById("entry_delete_button").setAttribute("onclick", "deleteEntryReal(" + id + ")");
+            dialog.setAttribute("open", "");
+        }
+
+        function deleteEntryReal(id) {
+            document.getElementById("delete_dialog").removeAttribute("open");
+
+            fetch("/api/entry/delete.php", {
+                method: "POST",
+                body: JSON.stringify({
+                    id: id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == 200) {
+                    var item = document.getElementById(id);
+                    var from = item.closest("div");
+
+                    item.remove();
+            
+                    if (from.querySelectorAll("md-list-item").length == 0) {
+                        const empty_message_item = document.createElement("md-list-item");
+
+                        const content = document.createElement("div");
+                        content.slot = "supporting-text";
+                        content.textContent = "No entries";
+
+                        empty_message_item.append(content);
+                        from.appendChild(empty_message_item);
+
+                        from.querySelectorAll("br").forEach(br => br.remove());
+                        console.log(from.querySelectorAll("br"));
+                    }
+                }else{
+                    if (data.status == 401) {
+                        document.getElementById("error_text").innerHTML = "You are not authenticated. Please reload the page and log in again."
+                    }else{
+                        document.getElementById("error_text").innerHTML = "API returned following error: " + data.error_text
+                    }
+
+                    document.getElementById("error_dialog").setAttribute("open", "");
+                }
+            })
+            .catch(error => {
+                document.getElementById("error_text").innerHTML = "API Request failed: " + error;
+                document.getElementById("error_dialog").setAttribute("open", "");
+
+                console.log(error);
+            })
+        }
+
+        function editEntry(id) {
+            var name = document.getElementById(id + "_name").innerHTML;
+            var text = document.getElementById(id + "_text").innerHTML;
+
+            document.getElementById("edit_dialog_id").innerHTML = id;
+            document.getElementById("edit_dialog_name").value = name;
+            document.getElementById("edit_dialog_text").value = text;
+
+            document.getElementById("edit_dialog").setAttribute("open", "");
+        }
+
+        function saveEdit() {
+            var id = document.getElementById("edit_dialog_id").innerHTML;
+            var new_name = document.getElementById("edit_dialog_name").value;
+            var new_text = document.getElementById("edit_dialog_text").value;
+
+            fetch("/api/entry/edit.php", {
+                method: "POST",
+                body: JSON.stringify({
+                    id: id,
+                    name: new_name,
+                    text: new_text
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == 200) {
+                    document.getElementById(id + "_name").innerHTML = new_name;
+                    document.getElementById(id + "_text").innerHTML = new_text;
+
+                    document.getElementById("edit_dialog").removeAttribute("open");
+                }else{
+                    if (data.status == 401) {
+                        document.getElementById("error_text").innerHTML = "You are not authenticated. Please reload the page and log in again."
+                    }else{
+                        document.getElementById("error_text").innerHTML = "API returned following error: " + data.error_text
+                    }
+
+                    document.getElementById("error_dialog").setAttribute("open", "");
+                }
+            })
+            .catch(error => {
+                document.getElementById("error_text").innerHTML = "API Request failed: " + error;
+                document.getElementById("error_dialog").setAttribute("open", "");
+
+                console.log(error);
+            })
+        }
+
+        function move_item(id, to) {
+            var item = document.getElementById(id);
+            var list = document.getElementById(to);
+
+            if (document.getElementById(to + "_empty")) {
+                document.getElementById(to + "_empty").remove();
+            }
+
+            var from = item.closest("div");
+
+            item.remove();
+            list.append(item);
+            
+            if (from.querySelectorAll("md-list-item").length == 0) {
+                const empty_message_item = document.createElement("md-list-item");
+
+                const content = document.createElement("div");
+                content.slot = "supporting-text";
+                content.textContent = "No entries";
+
+                empty_message_item.setAttribute("id", from.getAttribute("id") + "_empty");
+                empty_message_item.append(content);
+                from.appendChild(empty_message_item);
+            }
+
+            if (to == "approved_entry_list") {
+                document.getElementById(id + "_approve_button").style.display = "none";
+                document.getElementById(id + "_edit_button").style.display = "block";
+                document.getElementById(id + "_block_button").style.display = "block";
+                document.getElementById(id + "_delete_button").style.display = "block";
+            }
+
+
+            if (to == "pending_entry_list") {
+                document.getElementById(id + "_approve_button").style.display = "block";
+                document.getElementById(id + "_edit_button").style.display = "none";
+                document.getElementById(id + "_block_button").style.display = "block";
+                document.getElementById(id + "_delete_button").style.display = "block";
+            }
+
+
+            if (to == "blocked_entry_list") {
+                document.getElementById(id + "_approve_button").style.display = "block";
+                document.getElementById(id + "_edit_button").style.display = "block";
+                document.getElementById(id + "_block_button").style.display = "none";
+                document.getElementById(id + "_delete_button").style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>

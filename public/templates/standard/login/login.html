@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>%appname% // Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script type="importmap">
+        {
+            "imports": {
+                "@material/web/": "https://esm.run/@material/web/"
+            }
+        }
+    </script>
+    <script type="module">
+        import '@material/web/all.js';
+        import {styles as typescaleStyles} from '@material/web/typography/md-typescale-styles.js';
+
+        document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+    </script>
+    <style>
+        .page-content {
+            display: flex;
+            justify-content: center;
+            text-align: center;
+            align-items: center;
+        }
+
+        .center {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-content">
+        <div class="center">
+            <h1 class="md-typescale-display-large">%appname%</h1>
+            <h3 class="md-typescale-display-medium">Admin Panel Login</h3><br><br>
+            <p class="md-typescale-body-medium" id="error_msg" style="display: none;"></p>
+            <md-filled-text-field type="text" id="login_username" placeholder="Username"></md-filled-text-field><br><br>
+            <md-filled-text-field type="password" id="login_password" placeholder="Password"></md-filled-text-field><br><br>
+            <md-filled-button id="login_button">Login</md-filled-button>
+        </div>
+    </div>
+    <script>
+        document.getElementById("login_button").addEventListener("click", function() {
+            var username = document.getElementById("login_username").value;
+            var password = document.getElementById("login_password").value;
+
+            fetch("/api/auth/login.php", {
+                method:"POST",
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                }),
+                headers: {
+                    "Content-type": "application/json; charset=UTF-8"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == 200) {
+                    window.location.reload();
+                }else{
+                    document.getElementById("error_msg").innerHTML = data.error_text;
+                    document.getElementById("error_msg").style.display = "block";
+                }
+            })
+            .catch(error => {
+                document.getElementById("error_msg").innerHTML = error;
+                document.getElementById("error_msg").style.display = "block";
+            })
+        });
+    </script>
+</body>
+</html>

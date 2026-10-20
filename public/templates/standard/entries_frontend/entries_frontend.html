@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script type="importmap">
+    {
+      "imports": {
+        "@material/web/": "https://esm.run/@material/web/"
+      }
+    }
+  </script>
+  <script type="module">
+    import '@material/web/all.js';
+    import {styles as typescaleStyles} from '@material/web/typography/md-typescale-styles.js';
+
+    document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+  </script>
+
+  <title>%appname% // Entries</title>
+
+  <style>
+    :root {
+        --md-sys-color-primary: rgb(58, 58, 255);
+    }
+
+    p {
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+    }
+
+    hr {
+      border: 1px solid rgb(211, 211, 211);
+    }
+
+    .loader {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #date {
+        color: gray;
+    }
+  </style>
+</head>
+<body>
+    <h1 class="md-typescale-display-large">%appname%</h1>
+    <md-filled-tonal-button id="entry_add">
+      Add Entry
+    </md-filled-tonal-button>
+    <h2 class="md-typescale-display-medium">All Entrys</h2>
+    %entries%
+    <md-dialog id="add_entry_dialog">
+      <div slot="headline">
+        Add entry
+      </div>
+      <form slot="content" method="dialog">
+        <md-filled-text-field id="entry_name" label="Name"></md-filled-text-field><br><br>
+        <md-filled-text-field id="entry_text" label="Text" rows="5" style="resize: vertical;" type="textarea"></md-filled-text-field>
+        <div class="loader" id="loader" style="display: none;">
+          <md-circular-progress id="add_entry_load" indeterminate></md-circular-progress>
+        </div>
+        <p id="entry_return"></p>
+      </form>
+      <div slot="actions">
+        <md-filled-button id="entry_submit">Submit</md-filled-button>
+        <md-text-button id="entry_close">Close</md-text-button>
+      </div>
+    </md-dialog>
+    <script>
+      document.getElementById("entry_add").addEventListener("click", function() {
+        document.getElementById("entry_name").style.display = "block";
+        document.getElementById("entry_text").style.display = "block";
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("entry_return").innerHTML = "";
+        document.getElementById("entry_submit").style.display = "inline-flex";
+        document.getElementById("entry_close").style.display = "block";
+
+        document.getElementById("add_entry_dialog").setAttribute("open", "");
+      });
+
+      document.getElementById("entry_close").addEventListener("click", function() {
+        document.getElementById("add_entry_dialog").removeAttribute("open");
+      });
+
+      document.getElementById("entry_submit").addEventListener("click", function() {
+        document.getElementById("entry_name").style.display = "none";
+        document.getElementById("entry_text").style.display = "none";
+        document.getElementById("entry_submit").style.display = "none";
+        document.getElementById("entry_close").style.display = "none";
+
+        document.getElementById("loader").style.display = "flex";
+
+        var name = document.getElementById("entry_name").value;
+        var text = document.getElementById("entry_text").value;
+
+        fetch("/api/entry/add.php", {
+          method: "POST",
+          body: JSON.stringify({
+            name: name,
+            text: text
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById("loader").style.display = "none";
+          if (data.status !== 200) {
+            document.getElementById("entry_return").innerHTML = "API returned an error: " + data.error_text;
+            document.getElementById("entry_close").style.display = "block";
+          }else{
+            document.getElementById("entry_return").innerHTML = "Success! Maybe your entry must be aproved by the owner.";
+            document.getElementById("entry_close").style.display = "block";
+          }
+        })
+        .catch(error => {
+          document.getElementById("loader").style.display = "none";
+          document.getElementById("entry_return").innerHTML = "There was an error: " + error;
+          document.getElementById("entry_close").style.display = "block";
+        });
+      });
+    </script>
+  </body>
+</html>

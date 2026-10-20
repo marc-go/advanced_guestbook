@@ -1,0 +1,59 @@
+{
+    "error":{
+        "name":"error",
+        "dir_name":"error",
+        "html_file":"error.html",
+        "css_files":[
+            "error.css"
+        ],
+        "completion_files":{}
+    },
+
+    "setup":{
+        "name":"setup",
+        "dir_name":"setup",
+        "html_file":"setup.html",
+        "css_files":[],
+        "completion_files":{}
+    },
+
+    "entries_frontend":{
+        "name":"entries_frontend",
+        "dir_name":"entries_frontend",
+        "html_file":"entries_frontend.html",
+        "css_files":[],
+        "completion_files":{
+            "entries":"complete_entries.html"
+        }
+    },
+
+    "login":{
+        "name":"login",
+        "dir_name":"login",
+        "html_file":"login.html",
+        "css_files":[],
+        "completion_files":{}
+    },
+
+    "admin_home":{
+        "name":"admin_home",
+        "dir_name":"admin_home",
+        "html_file":"home.html",
+        "css_files":[],
+        "completion_files":{
+            "entries":"complete_entries.html"
+        }
+    },
+
+    "admin_entries":{
+        "name":"admin_entries",
+        "dir_name":"admin_entries",
+        "html_file":"entries.html",
+        "css_files":[],
+        "completion_files":{
+            "approved_entries":"entries_approved.html",
+            "pending_entries":"entries_pending.html",
+            "blocked_entries":"entries_blocked.html"
+        }
+    }
+}

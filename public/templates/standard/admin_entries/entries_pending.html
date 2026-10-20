@@ -1,0 +1,20 @@
+<md-list-item id="%id%">
+        <div class="entry_header" style="display: flex;">
+                <div slot="headline" style="margin-right: 5px;" id="%id%_name">%name%</div>
+                <div slot="supporting-text" style="color: gray;">%date%</div>
+        </div>
+        <div slot="supporting-text" id="%id%_text">%text%</div>
+        <md-fab slot="end" size="small" aria-label="Approve" onclick="approveEntry(%id%)" id="%id%_approve_button">
+                <md-icon slot="icon">check</md-icon>
+        </md-fab>
+        <md-fab slot="end" size="small" aria-label="Edit" onclick="editEntry(%id%)" id="%id%_edit_button" style="display: none;">
+                <md-icon slot="icon">edit</md-icon>
+        </md-fab>
+        <md-fab slot="end" size="small" aria-label="Block" onclick="blockEntry(%id%)" id="%id%_block_button">
+                <md-icon slot="icon">block</md-icon>
+        </md-fab>
+        <md-fab slot="end" size="small" aria-label="Delete" onclick="deleteEntry(%id%)" id="%id%_delete_button">
+                <md-icon slot="icon">delete</md-icon>
+        </md-fab>
+        <br>
+</md-list-item>

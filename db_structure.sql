@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS "users" (
+    "id"       INTEGER PRIMARY KEY AUTOINCREMENT,
+    "username" TEXT NOT NULL UNIQUE,
+    "password" TEXT NOT NULL,
+    "owner"    INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS "entries" (
+    "id"     INTEGER PRIMARY KEY AUTOINCREMENT,
+    "name"   TEXT NOT NULL,
+    "text"   TEXT NOT NULL,
+    "date"   TEXT NOT NULL,
+    "status" INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS "settings" (
+    "id"     INTEGER PRIMARY KEY AUTOINCREMENT,
+    "name"   TEXT NOT NULL,
+    "value"  TEXT NOT NULL
+);

@@ -1,0 +1,17 @@
+<md-list-item id="%id%">
+        <div class="entry_header" style="display: flex;">
+                <div slot="headline" style="margin-right: 5px;">%name%</div>
+                <div slot="supporting-text" style="color: gray;">%date%</div>
+        </div>
+        <div slot="supporting-text">%text%</div>
+        <md-fab slot="end" size="small" aria-label="Approve" onclick="approveEntry(%id%)">
+                <md-icon slot="icon">check</md-icon>
+        </md-fab>
+        <md-fab slot="end" size="small" aria-label="Block" onclick="blockEntry(%id%)">
+                <md-icon slot="icon">block</md-icon>
+        </md-fab>
+        <md-fab slot="end" size="small" aria-label="Delete" onclick="deleteEntry(%id%)">
+                <md-icon slot="icon">delete</md-icon>
+        </md-fab>
+</md-list-item>
+<br>

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>%appname% - Admin Panel - Overview</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <script type="importmap">
+        {
+            "imports": {
+                "@material/web/": "https://esm.run/@material/web/"
+            }
+        }
+    </script>
+    <script type="module">
+        import '@material/web/all.js';
+        import { styles as typescaleStyles } from '@material/web/typography/md-typescale-styles.js';
+
+        document.adoptedStyleSheets.push(typescaleStyles.styleSheet);
+    </script>
+    <style>
+        :root {
+            --md-sys-color-primary: rgb(58, 58, 255);
+            --active-menu-point-color: rgb(116, 148, 250);
+            --md-sys-color-surface-container: rgb(223, 228, 255);
+        }
+
+        body {
+            margin: 0;
+        }
+
+        .layout {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            flex: 0 0 280px;
+            width: 280px;
+            overflow: hidden;
+            background: var(--md-sys-color-surface-container);
+            border-right: 1px solid var(--md-sys-color-outline-variant);
+            transition: flex-basis .2s ease, width .2s ease;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            white-space: nowrap;
+        }
+
+        .sidebar md-list {
+            background: transparent;
+        }
+
+        md-list-item.active {
+            background-color: var(--active-menu-point-color);
+            border-radius: 28px;
+            margin-bottom: 10px;
+        }
+
+        md-list-item {
+            border-radius: 28px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar.collapsed {
+            flex-basis: 58px;
+            width: 58x;
+        }
+
+        .sidebar.collapsed .title,
+        .sidebar.collapsed .label {
+            display: none;
+        }
+
+        .content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 720px) {
+            body {
+                overflow-x: hidden;
+            }
+        }
+
+        #entry_delete_button {
+            --md-sys-color-primary: #e30;
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <md-icon-button id="toggle" aria-label="Menü ein-/ausklappen">
+                    <md-icon>menu</md-icon>
+                </md-icon-button>
+                <span class="md-typescale-body-large title">%appname%</span>
+            </div>
+
+            <md-list>
+                <md-list-item type="link" href="/admin/overview/" class="active">
+                    <md-icon slot="start">dashboard</md-icon>
+                    <span class="label">Overview</span>
+                </md-list-item>
+                <md-list-item type="link" href="/admin/entries/">
+                    <md-icon slot="start">book</md-icon>
+                    <span class="label">Entries</span>
+                </md-list-item>
+                <md-list-item type="link" href="/admin/settings/">
+                    <md-icon slot="start">settings</md-icon>
+                    <span class="label">Settings</span>
+                </md-list-item>
+            </md-list>
+        </aside>
+
+        <main class="content">
+            <h1 class="md-typescale-display-large">%appname%</h1>
+            <h3 class="md-typescale-display-medium">Pending Entries</h3>
+            <md-list id="entry_list">
+                %entries%
+            </md-list>
+        </main>
+    </div>
+
+
+    <md-dialog id="error_dialog">
+        <div slot="headline">Error</div>
+        <form slot="content" id="error_text" method="dialog">
+
+        </form>
+        <div slot="actions">
+            <md-text-button form="error_text">Close</md-text-button>
+        </div>
+    </md-dialog>
+
+    <md-dialog id="delete_dialog">
+        <div slot="headline">Are you sure?</div>
+        <form slot="content" id="delete_dialog_form" method="dialog">
+            You can not undo this action.
+        </form>
+        <div slot="actions">
+            <md-text-button form="delete_dialog_form">Close</md-text-button>
+            <md-filled-button id="entry_delete_button">Delete</md-filled-button>
+        </div>
+    </md-dialog>
+
+
+    <script type="module">
+        const sidebar = document.getElementById('sidebar');
+        const items = sidebar.querySelectorAll('md-list-item');
+
+        const mq = window.matchMedia('(max-width: 720px)');
+
+        const applyBreakpoint = () => {
+            sidebar.classList.toggle('collapsed', mq.matches);
+        };
+
+        applyBreakpoint();
+        mq.addEventListener('change', applyBreakpoint);
+
+        document.getElementById('toggle').addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        items.forEach(item => {
+            item.addEventListener('click', () => {
+                items.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+    </script>
+    
+    <script>
+        var entry_list = document.getElementById("entry_list");
+        var entry_count;
+
+        if (entry_list.querySelectorAll("md-list-item").length == 0) {
+            const empty_message_item = document.createElement("md-list-item");
+
+            const content = document.createElement("div");
+            content.slot = "supporting-text";
+            content.textContent = "No pending entries";
+
+            empty_message_item.append(content);
+            entry_list.appendChild(empty_message_item);
+        }
+
+        function approveEntry(id) {
+            fetch("/api/entry/approve.php", {
+                method: "POST",
+                body: JSON.stringify({
+                    id: id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == 200) {
+                    document.getElementById(id).remove();
+
+                    entry_count = entry_list.querySelectorAll("md-list-item").length;
+
+                    if (entry_count == 0) {
+                        const empty_message_item = document.createElement("md-list-item");
+
+                        const content = document.createElement("div");
+                        content.slot = "supporting-text";
+                        content.textContent = "No pending entries";
+
+                        empty_message_item.append(content);
+                        entry_list.appendChild(empty_message_item);
+                    }
+                }else{
+                    if (data.status == 401) {
+                        document.getElementById("error_text").innerHTML = "You are not authenticated. Please reload the page and log in again."
+                    }else{
+                        document.getElementById("error_text").innerHTML = "API returned following error: " + data.error_text
+                    }
+
+                    document.getElementById("error_dialog").setAttribute("open", "");
+                }
+            })
+            .catch(error => {
+                document.getElementById("error_text").innerHTML = "API Request failed: " + error;
+                document.getElementById("error_dialog").setAttribute("open", "");
+
+                console.log(error);
+            })
+        }
+
+        function blockEntry(id) {
+            fetch("/api/entry/block.php", {
+                method: "POST",
+                body: JSON.stringify({
+                    id: id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == 200) {
+                    document.getElementById(id).remove();
+
+                    entry_count = entry_list.querySelectorAll("md-list-item").length;
+
+                    if (entry_count == 0) {
+                        const empty_message_item = document.createElement("md-list-item");
+
+                        const content = document.createElement("div");
+                        content.slot = "supporting-text";
+                        content.textContent = "No pending entries";
+
+                        empty_message_item.append(content);
+                        entry_list.appendChild(empty_message_item);
+                    }
+                }else{
+                    if (data.status == 401) {
+                        document.getElementById("error_text").innerHTML = "You are not authenticated. Please reload the page and log in again."
+                    }else{
+                        document.getElementById("error_text").innerHTML = "API returned following error: " + data.error_text
+                    }
+
+                    document.getElementById("error_dialog").setAttribute("open", "");
+                }
+            })
+            .catch(error => {
+                document.getElementById("error_text").innerHTML = "API Request failed: " + error;
+                document.getElementById("error_dialog").setAttribute("open", "");
+
+                console.log(error);
+            })
+        }
+
+        function deleteEntry(id) {
+            const dialog = document.getElementById("delete_dialog");
+            document.getElementById("entry_delete_button").setAttribute("onclick", "deleteEntryReal(" + id + ")");
+            dialog.setAttribute("open", "");
+        }
+
+        function deleteEntryReal(id) {
+            document.getElementById("delete_dialog").removeAttribute("open");
+
+            fetch("/api/entry/delete.php", {
+                method: "POST",
+                body: JSON.stringify({
+                    id: id
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == 200) {
+                    document.getElementById(id).remove();
+
+                    entry_count = entry_list.querySelectorAll("md-list-item").length;
+
+                    if (entry_count == 0) {
+                        const empty_message_item = document.createElement("md-list-item");
+
+                        const content = document.createElement("div");
+                        content.slot = "supporting-text";
+                        content.textContent = "No pending entries";
+
+                        empty_message_item.append(content);
+                        entry_list.appendChild(empty_message_item);
+                        console.log("hello");
+                    }
+                }else{
+                    if (data.status == 401) {
+                        document.getElementById("error_text").innerHTML = "You are not authenticated. Please reload the page and log in again."
+                    }else{
+                        document.getElementById("error_text").innerHTML = "API returned following error: " + data.error_text
+                    }
+
+                    document.getElementById("error_dialog").setAttribute("open", "");
+                }
+            })
+            .catch(error => {
+                document.getElementById("error_text").innerHTML = "API Request failed: " + error;
+                document.getElementById("error_dialog").setAttribute("open", "");
+
+                console.log(error);
+            })
+        }
+    </script>
+</body>
+</html>
