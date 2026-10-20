@@ -1,3 +1,2 @@
-# better_guestbook
+# Advanced Guestbook
 
-Ein Gästebuch nur in besser als das letzte
